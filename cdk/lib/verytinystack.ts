@@ -147,7 +147,13 @@ export class VeryTinyStack extends Stack {
       blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
       accessControl: BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
       websiteIndexDocument: 'index.html',
-      websiteErrorDocument: 'index.html'
+      websiteErrorDocument: 'index.html',
+      lifecycleRules: [{
+        enabled: true,
+        expiredObjectDeleteMarker: true,
+        noncurrentVersionExpiration: Duration.days(30),
+        noncurrentVersionsToRetain: 1
+      }]
     });
 
     // CloudFront
