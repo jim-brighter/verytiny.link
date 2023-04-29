@@ -115,6 +115,12 @@ export class VeryTinyStack extends Stack {
 
     const tinyLambdaIntegration = new LambdaIntegration(tinyLinkLambda)
 
+    restApi.root.addCorsPreflight({
+      allowOrigins: ['*'],
+      allowHeaders: ['*'],
+      allowCredentials: true
+    });
+
     restApi.root.addMethod('GET', tinyLambdaIntegration);
     restApi.root.addMethod('POST', tinyLambdaIntegration);
 

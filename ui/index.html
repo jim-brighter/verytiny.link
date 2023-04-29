@@ -1,7 +1,47 @@
 <!DOCTYPE html>
-<head>
-    <title>Very Tiny Links</title>
-</head>
-<body>
-    Very Tiny Links
-</body>
+<html lang="en">
+    <head>
+        <title>Very Tiny Links</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <body>
+        <form onsubmit="onSubmit(this); return false">
+            <label for="url">URL:</label>
+            <input type="text" title="url" id="url" autocomplete="off"/>
+
+            <input type="submit">
+        </form>
+        <div style="margin-top: 1rem;" id="response-container"></div>
+        <script>
+            const onSubmit = async (e) => {
+                const url = document.getElementById('url').value;
+                if (url === null || url.length === 0) {
+                    document.getElementById('url').style.border = '2px solid red';
+                }
+
+                const response = await fetch('https://verytiny.link', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url
+                    })
+                });
+
+                const data = await response.json();
+                const veryTinyUrl = `https://verytiny.link/${data.shortId}`;
+
+                const link = document.createElement('a');
+                link.href = veryTinyUrl;
+                link.textContent = veryTinyUrl;
+                link.title = veryTinyUrl;
+                link.target = '_blank';
+                link.rel = 'noopener noreferrer';
+
+                document.getElementById('response-container').appendChild(link)
+            }
+        </script>
+    </body>
+</html>
