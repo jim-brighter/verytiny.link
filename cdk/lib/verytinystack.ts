@@ -1,4 +1,4 @@
-import * as cdk from 'aws-cdk-lib';
+import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { Table, BillingMode, TableEncryption, AttributeType, ProjectionType } from 'aws-cdk-lib/aws-dynamodb';
 import { BackupPlan, BackupResource } from 'aws-cdk-lib/aws-backup';
@@ -7,13 +7,16 @@ import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { HttpIntegration, LambdaIntegration, LambdaRestApi, PassthroughBehavior, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
-import { ApiGateway } from 'aws-cdk-lib/aws-route53-targets';
+import { LambdaIntegration, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
+import { ApiGateway, CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
+import { BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
+import { CloudFrontAllowedCachedMethods, CloudFrontAllowedMethods, CloudFrontWebDistribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
 
 const SUBMITTER_INDEX = 'SubmitterIndex'
 
-export class VeryTinyStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+export class VeryTinyStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
     // Hosted Zone
@@ -40,7 +43,7 @@ export class VeryTinyStack extends cdk.Stack {
       },
       encryption: TableEncryption.AWS_MANAGED,
       tableName: 'VeryTinyUrls',
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.RETAIN,
       billingMode: BillingMode.PAY_PER_REQUEST,
       deletionProtection: true,
       pointInTimeRecovery: true
@@ -81,7 +84,7 @@ export class VeryTinyStack extends cdk.Stack {
     const tinyLinkLambda = new NodejsFunction(this, 'VeryTinyLambda', {
       runtime: Runtime.NODEJS_18_X,
       handler: 'handler',
-      entry: './lambda/verytinylambda.ts',
+      entry: '../lambda/src/verytinylambda.ts',
       bundling: {
         minify: true,
         externalModules: [
@@ -128,5 +131,79 @@ export class VeryTinyStack extends cdk.Stack {
       target: RecordTarget.fromAlias(new ApiGateway(restApi))
     });
 
+    // UI Bucket
+    const uiBucket = new Bucket(this, 'VeryTinyBucket', {
+      bucketName: 'home.verytiny.link',
+      encryption: BucketEncryption.S3_MANAGED,
+      removalPolicy: RemovalPolicy.RETAIN,
+      versioned: true,
+      publicReadAccess: true,
+      blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
+      accessControl: BucketAccessControl.BUCKET_OWNER_FULL_CONTROL,
+      websiteIndexDocument: 'index.html',
+      websiteErrorDocument: 'index.html'
+    });
+
+    // CloudFront
+    const distribution = new CloudFrontWebDistribution(this, 'VeryTinyCloudfront', {
+      originConfigs: [
+        {
+          s3OriginSource: {
+            s3BucketSource: uiBucket
+          },
+          behaviors: [
+            {
+              isDefaultBehavior: true,
+              pathPattern: '*',
+              compress: true,
+              allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+              cachedMethods: CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
+              defaultTtl: Duration.days(1),
+              minTtl: Duration.days(1),
+              maxTtl: Duration.days(3)
+            }
+          ]
+        }
+      ],
+      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      defaultRootObject: 'index.html',
+      errorConfigurations: [
+        {
+          errorCode: 404,
+          responsePagePath: '/',
+          responseCode: 200,
+          errorCachingMinTtl: Duration.days(1).toSeconds()
+        },
+        {
+          errorCode: 403,
+          responsePagePath: '/',
+          responseCode: 200,
+          errorCachingMinTtl: Duration.days(1).toSeconds()
+        }
+      ],
+      viewerCertificate: {
+        aliases: ['home.verytiny.link'],
+        props: {
+          minimumProtocolVersion: 'TLSv1.2_2021',
+          sslSupportMethod: 'sni-only',
+          acmCertificateArn: cert.certificateArn
+        }
+      }
+    });
+
+    // UI Deployment
+    new BucketDeployment(this, 'VeryTinyBucketDeployment', {
+      sources: [Source.asset('../ui')],
+      destinationBucket: uiBucket,
+      distribution: distribution
+    });
+
+    new ARecord(this, 'UIRecord', {
+      zone: hostedZone,
+      recordName: 'home',
+      target: {
+        aliasTarget: new CloudFrontTarget(distribution)
+      }
+    });
   }
 }
