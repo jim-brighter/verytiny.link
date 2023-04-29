@@ -61,6 +61,13 @@
                 });
 
                 const data = await response.json();
+
+                if (!response.ok) {
+                    alert(data.errorMessage);
+                    document.getElementById('loading-spinner').remove();
+                    return;
+                }
+
                 const veryTinyUrl = `https://verytiny.link/${data.shortId}`;
 
                 const link = document.createElement('a');

@@ -47,12 +47,21 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
             let body = event.body && JSON.parse(event.body);
             let url: string = body.url;
             let submitter: string = body.submitter;
-            if (url === null) {
+            if (url == null || url.length === 0) {
                 return {
                     statusCode: 400,
                     headers: corsHeaders,
                     body: JSON.stringify({
                         errorMessage: `url is required in request body`
+                    })
+                }
+            }
+            if (!(url.startsWith('http://') || url.startsWith('https://'))) {
+                return {
+                    statusCode: 400,
+                    headers: corsHeaders,
+                    body: JSON.stringify({
+                        errorMessage: `url must be a valid web address`
                     })
                 }
             }
