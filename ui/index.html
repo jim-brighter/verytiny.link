@@ -24,6 +24,10 @@
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(180deg); }
             }
+
+            .margin-top-1 {
+                margin-top: 1rem;
+            }
         </style>
     </head>
     <body>
@@ -33,13 +37,15 @@
                 <label for="url">URL:</label>
                 <input type="text" title="url" id="url" autocomplete="off"/>
             </div>
-            <input style="margin-top: 1rem;" type="submit" value="Make it tiny!">
+            <input class="margin-top-1" type="submit" value="Make it tiny!">
         </form>
-        <div style="margin-top: 1rem;" id="response-container"></div>
+        <div class="margin-top-1" id="response-container"></div>
         <script>
             const onSubmit = async (e) => {
+                document.getElementById('url').style.removeProperty('border');
+
                 const url = document.getElementById('url').value;
-                if (url === null || url.length === 0) {
+                if (url == null || url.length === 0) {
                     document.getElementById('url').style.border = '2px solid red';
                     return;
                 }
