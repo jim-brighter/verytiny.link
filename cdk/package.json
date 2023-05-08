@@ -12,7 +12,7 @@
     "deploy": "cdk deploy --require-approval never --outputs-file output.json"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.114",
+    "@types/aws-lambda": "^8.10.115",
     "@types/jest": "^29.4.0",
     "@types/node": "20.1.0",
     "aws-cdk": "2.77.0",
