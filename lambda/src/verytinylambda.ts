@@ -56,7 +56,7 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
                     })
                 }
             }
-            if (!(url.startsWith('http://') || url.startsWith('https://'))) {
+            if (!(url.toLowerCase().startsWith('http'))) {
                 return {
                     statusCode: 400,
                     headers: corsHeaders,

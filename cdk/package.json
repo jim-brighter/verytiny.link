@@ -9,7 +9,8 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
-    "deploy": "cdk deploy --require-approval never --outputs-file output.json"
+    "cdk:lambda:install": "cd ../lambda && npm i && cd ../cdk",
+    "deploy": "npm run cdk:lambda:install && cdk deploy --require-approval never --outputs-file output.json"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
