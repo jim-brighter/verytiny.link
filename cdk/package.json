@@ -15,8 +15,8 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.119",
     "@types/jest": "^29.5.4",
-    "@types/node": "20.5.7",
-    "aws-cdk": "2.93.0",
+    "@types/node": "20.5.9",
+    "aws-cdk": "2.94.0",
     "esbuild": "^0.19.2",
     "jest": "^29.6.4",
     "ts-jest": "^29.1.1",
@@ -24,10 +24,10 @@
     "typescript": "~5.2.2"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.398.0",
-    "@aws-sdk/lib-dynamodb": "^3.398.0",
-    "aws-cdk-lib": "2.93.0",
-    "constructs": "^10.2.69",
+    "@aws-sdk/client-dynamodb": "^3.405.0",
+    "@aws-sdk/lib-dynamodb": "^3.405.0",
+    "aws-cdk-lib": "2.94.0",
+    "constructs": "^10.2.70",
     "source-map-support": "^0.5.21"
   }
 }
