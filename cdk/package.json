@@ -13,10 +13,10 @@
     "deploy": "npm run cdk:lambda:install && cdk deploy --require-approval never --outputs-file output.json"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.122",
+    "@types/aws-lambda": "^8.10.124",
     "@types/jest": "^29.5.5",
-    "@types/node": "20.8.2",
-    "aws-cdk": "2.99.1",
+    "@types/node": "20.8.4",
+    "aws-cdk": "2.100.0",
     "esbuild": "^0.19.4",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
@@ -24,10 +24,10 @@
     "typescript": "~5.2.2"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.423.0",
-    "@aws-sdk/lib-dynamodb": "^3.423.0",
-    "aws-cdk-lib": "2.99.1",
-    "constructs": "^10.2.70",
+    "@aws-sdk/client-dynamodb": "^3.427.0",
+    "@aws-sdk/lib-dynamodb": "^3.427.0",
+    "aws-cdk-lib": "2.100.0",
+    "constructs": "^10.3.0",
     "source-map-support": "^0.5.21"
   }
 }
