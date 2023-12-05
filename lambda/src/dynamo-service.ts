@@ -1,5 +1,5 @@
 import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { ConditionalCheckFailedException, DynamoDBClient } from '@aws-sdk/client-dynamodb';
 import { Link, LinkRecord } from './link';
 import { randomString } from './util';
 
@@ -21,17 +21,25 @@ export const createLink = async (url: string, submitter?: string): Promise<Link>
     link.url = url;
     link.createdTime = new Date().getTime();
 
-    try {
-        await ddb.send(new PutCommand({
-            TableName: table,
-            Item: link
-        }));
-    } catch(e) {
-        console.error(`Error saving new url ${url}`, e);
-        throw e;
-    }
+    while(true) {
+        try {
+            await ddb.send(new PutCommand({
+                TableName: table,
+                Item: link,
+                ConditionExpression: 'attribute_not_exists(shortId)'
+            }));
 
-    return link;
+            return link;
+        } catch(e) {
+            if (e instanceof ConditionalCheckFailedException) {
+                console.info(`Duplicate shortId generated for url ${url}`);
+                link.shortId = randomString();
+            } else {
+                console.error(`Error inserting url ${url}`, e);
+                throw e;
+            }
+        }
+    }
 }
 
 export const getUrl = async (key: string): Promise<string> => {
