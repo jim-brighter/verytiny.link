@@ -11,7 +11,7 @@
     "cdk": "cdk",
     "cdk:lambda:install": "cd ../lambda && npm i && cd ../cdk",
     "deploy": "npm run cdk:lambda:install && cdk deploy --require-approval never --outputs-file output.json",
-    "synth": "cd synth"
+    "synth": "cdk synth"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.136",
