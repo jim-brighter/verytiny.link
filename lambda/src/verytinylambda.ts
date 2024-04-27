@@ -25,12 +25,13 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
                         body: ''
                     }
                 } catch(e) {
+                    console.error(`Error redirecting to url for '${key}'`);
                     return {
-                        statusCode: 500,
-                        headers: corsHeaders,
-                        body: JSON.stringify({
-                            errorMessage: `Error redirecting to url for ${key}`
-                        })
+                        statusCode: 301,
+                        headers: {
+                            Location: 'https://home.verytiny.link'
+                        },
+                        body: ''
                     }
                 }
             }
