@@ -11,38 +11,29 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
         'Access-Control-Allow-Credentials': true
     };
 
+    const redirect: APIGatewayProxyResult = {
+        statusCode: 301,
+        headers: {
+            Location: 'https://home.verytiny.link'
+        },
+        body: ''
+    }
+
     switch(event.httpMethod) {
         case 'GET':
             if (event.pathParameters && event.pathParameters.key) {
                 const key = event.pathParameters.key;
                 try {
                     const url = await dynamoService.getUrl(key);
-                    return {
-                        statusCode: 301,
-                        headers: {
-                            Location: url
-                        },
-                        body: ''
-                    }
+                    redirect.headers = { Location:  url };
+                    return redirect;
                 } catch(e) {
                     console.error(`Error redirecting to url for '${key}'`);
-                    return {
-                        statusCode: 301,
-                        headers: {
-                            Location: 'https://home.verytiny.link'
-                        },
-                        body: ''
-                    }
+                    return redirect;
                 }
             }
             else {
-                return {
-                    statusCode: 301,
-                    headers: {
-                        Location: 'https://home.verytiny.link'
-                    },
-                    body: ''
-                }
+                return redirect;
             }
         case 'POST':
             let body = event.body && JSON.parse(event.body);
