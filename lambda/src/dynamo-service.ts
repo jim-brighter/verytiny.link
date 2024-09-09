@@ -19,7 +19,7 @@ export const createLink = async (url: string, submitter?: string): Promise<Link>
     link.shortId = randomString();
     link.submitter = submitter || 'anon';
     link.url = url;
-    link.createdTime = new Date().getTime();
+    link.createdTime = Date.now();
 
     while(true) {
         try {
