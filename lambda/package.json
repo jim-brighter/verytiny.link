@@ -7,8 +7,8 @@
       "test": "jest"
     },
     "devDependencies": {
-      "@types/aws-lambda": "^8.10.145",
-      "@types/node": "22.9.3",
+      "@types/aws-lambda": "^8.10.146",
+      "@types/node": "22.10.1",
       "esbuild": "^0.24.0",
       "ts-node": "^10.9.2",
       "typescript": "~5.7.2"
