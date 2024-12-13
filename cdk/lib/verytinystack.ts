@@ -67,7 +67,7 @@ export class VeryTinyStack extends Stack {
 
     // Lambda
     const defaultErrorLambda = new Function(this, 'DefaultErrorHandler', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'index.handler',
       code: Code.fromInline(`
       exports.handler = async (event) => {
@@ -82,7 +82,7 @@ export class VeryTinyStack extends Stack {
     });
 
     const tinyLinkLambda = new NodejsFunction(this, 'VeryTinyLambda', {
-      runtime: Runtime.NODEJS_20_X,
+      runtime: Runtime.NODEJS_22_X,
       handler: 'handler',
       entry: '../lambda/src/verytinylambda.ts',
       bundling: {
