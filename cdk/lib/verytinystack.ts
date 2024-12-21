@@ -46,7 +46,8 @@ export class VeryTinyStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       billingMode: BillingMode.PAY_PER_REQUEST,
       deletionProtection: true,
-      pointInTimeRecovery: true
+      pointInTimeRecovery: true,
+      timeToLiveAttribute: 'ttl'
     });
 
     records.addGlobalSecondaryIndex({
