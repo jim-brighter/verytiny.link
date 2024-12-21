@@ -3,6 +3,7 @@ interface ILink {
     submitter: string;
     url: string;
     createdTime: number;
+    ttl: number;
 }
 
 export type Link = ILink;
@@ -12,5 +13,5 @@ export class LinkRecord implements Link {
     submitter: string;
     url: string;
     createdTime: number;
-
+    ttl: number;
 }
