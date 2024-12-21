@@ -20,7 +20,7 @@ export const createLink = async (url: string, submitter?: string): Promise<Link>
     link.submitter = submitter || 'anon';
     link.url = url;
     link.createdTime = Date.now();
-    link.ttl = link.createdTime + (365 * 24 * 60 * 60 * 1000)
+    link.ttl = Math.floor(link.createdTime / 1000 + (365 * 24 * 60 * 60));
 
     while(true) {
         try {
