@@ -152,8 +152,7 @@ export class VeryTinyStack extends Stack {
       lifecycleRules: [{
         enabled: true,
         expiredObjectDeleteMarker: true,
-        noncurrentVersionExpiration: Duration.days(30),
-        noncurrentVersionsToRetain: 1
+        noncurrentVersionExpiration: Duration.days(30)
       }]
     });
 
@@ -171,9 +170,9 @@ export class VeryTinyStack extends Stack {
               compress: true,
               allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
               cachedMethods: CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
-              defaultTtl: Duration.days(1),
-              minTtl: Duration.days(1),
-              maxTtl: Duration.days(3)
+              defaultTtl: Duration.days(90),
+              minTtl: Duration.days(30),
+              maxTtl: Duration.days(365)
             }
           ]
         }
@@ -185,13 +184,13 @@ export class VeryTinyStack extends Stack {
           errorCode: 404,
           responsePagePath: '/',
           responseCode: 200,
-          errorCachingMinTtl: Duration.days(1).toSeconds()
+          errorCachingMinTtl: Duration.days(30).toSeconds()
         },
         {
           errorCode: 403,
           responsePagePath: '/',
           responseCode: 200,
-          errorCachingMinTtl: Duration.days(1).toSeconds()
+          errorCachingMinTtl: Duration.days(30).toSeconds()
         }
       ],
       viewerCertificate: {
