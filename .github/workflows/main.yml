@@ -36,6 +36,8 @@ jobs:
           minor-version: 0
       - name: Deploy
         run: |
-          cd cdk
+          cd ui
+          node build.js
+          cd ../cdk
           npm i
           npm run deploy
