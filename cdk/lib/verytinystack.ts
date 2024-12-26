@@ -206,6 +206,7 @@ export class VeryTinyStack extends Stack {
     // UI Deployment
     new BucketDeployment(this, 'VeryTinyBucketDeployment', {
       sources: [Source.asset('../ui')],
+      exclude: ['build.js'],
       destinationBucket: uiBucket,
       distribution: distribution
     });
