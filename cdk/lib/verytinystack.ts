@@ -87,11 +87,7 @@ export class VeryTinyStack extends Stack {
       handler: 'handler',
       entry: '../lambda/src/verytinylambda.ts',
       bundling: {
-        minify: true,
-        externalModules: [
-          '@aws-sdk/client-dynamodb',
-          '@aws-sdk/lib-dynamodb'
-        ]
+        minify: true
       },
       environment: {
         VERY_TINY_TABLE: records.tableName,
