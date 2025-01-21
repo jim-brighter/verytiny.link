@@ -94,7 +94,7 @@ export class VeryTinyStack extends Stack {
         STRING_LENGTH: '4',
         SUBMITTER_INDEX
       },
-      logRetention: RetentionDays.ONE_MONTH
+      logRetention: RetentionDays.THREE_DAYS
     });
 
     records.grantReadWriteData(tinyLinkLambda);
@@ -148,7 +148,7 @@ export class VeryTinyStack extends Stack {
       lifecycleRules: [{
         enabled: true,
         expiredObjectDeleteMarker: true,
-        noncurrentVersionExpiration: Duration.days(30)
+        noncurrentVersionExpiration: Duration.days(3)
       }]
     });
 
