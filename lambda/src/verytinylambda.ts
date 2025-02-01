@@ -1,6 +1,6 @@
-import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import * as dynamoService from './dynamo-service';
-import { Link } from './link';
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda'
+import * as dynamoService from './dynamo-service'
+import { Link } from './link'
 
 export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> => {
 
@@ -9,7 +9,7 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
         'Access-Control-Allow-Credentials': true
-    };
+    }
 
     const redirect: APIGatewayProxyResult = {
         statusCode: 301,
@@ -22,23 +22,23 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
     switch(event.httpMethod) {
         case 'GET':
             if (event.pathParameters && event.pathParameters.key) {
-                const key = event.pathParameters.key;
+                const key = event.pathParameters.key
                 try {
-                    const url = await dynamoService.getUrl(key);
-                    redirect.headers = { Location:  url };
-                    return redirect;
+                    const url = await dynamoService.getUrl(key)
+                    redirect.headers = { Location:  url }
+                    return redirect
                 } catch(e) {
-                    console.error(`Error redirecting to url for '${key}'`);
-                    return redirect;
+                    console.error(`Error redirecting to url for '${key}'`)
+                    return redirect
                 }
             }
             else {
-                return redirect;
+                return redirect
             }
         case 'POST':
-            let body = event.body && JSON.parse(event.body);
-            let url: string = body.url;
-            let submitter: string = body.submitter;
+            let body = event.body && JSON.parse(event.body)
+            let url: string = body.url
+            let submitter: string = body.submitter
             if (url == null || url.length === 0) {
                 return {
                     statusCode: 400,
@@ -58,7 +58,7 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
                 }
             }
             try {
-                const link: Link = await dynamoService.createLink(url, submitter);
+                const link: Link = await dynamoService.createLink(url, submitter)
                 return {
                     statusCode: 201,
                     headers: corsHeaders,
@@ -80,6 +80,6 @@ export const handler = async(event: APIGatewayProxyEvent): Promise<APIGatewayPro
                 body: JSON.stringify({
                     errorMessage: 'Operation not supported'
                 })
-            };
+            }
     }
 }

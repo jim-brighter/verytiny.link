@@ -1,36 +1,36 @@
-import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib';
-import { Construct } from 'constructs';
-import { Table, BillingMode, TableEncryption, AttributeType, ProjectionType } from 'aws-cdk-lib/aws-dynamodb';
-import { BackupPlan, BackupResource } from 'aws-cdk-lib/aws-backup';
-import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda';
-import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
-import { RetentionDays } from 'aws-cdk-lib/aws-logs';
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
-import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager';
-import { LambdaIntegration, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
-import { ApiGateway, CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
-import { BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
-import { AllowedMethods, CachedMethods, CachePolicy, Distribution, SecurityPolicyProtocol, SSLMethod, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
-import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
-import { S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import { Stack, StackProps, RemovalPolicy, Duration } from 'aws-cdk-lib'
+import { Construct } from 'constructs'
+import { Table, BillingMode, TableEncryption, AttributeType, ProjectionType } from 'aws-cdk-lib/aws-dynamodb'
+import { BackupPlan, BackupResource } from 'aws-cdk-lib/aws-backup'
+import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda'
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
+import { RetentionDays } from 'aws-cdk-lib/aws-logs'
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
+import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager'
+import { LambdaIntegration, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway'
+import { ApiGateway, CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets'
+import { BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3'
+import { AllowedMethods, CachedMethods, CachePolicy, Distribution, SecurityPolicyProtocol, SSLMethod, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront'
+import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment'
+import { S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins'
 
 const SUBMITTER_INDEX = 'SubmitterIndex'
 
 export class VeryTinyStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
+    super(scope, id, props)
 
     // Hosted Zone
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
       domainName: 'verytiny.link'
-    });
+    })
 
     // SSL Certificate
     const cert = new Certificate(this, 'VeryTinyCertificate', {
       domainName: 'verytiny.link',
       subjectAlternativeNames: ['*.verytiny.link'],
       validation: CertificateValidation.fromDns(hostedZone)
-    });
+    })
 
     // Dynamo
     const records = new Table(this, 'VeryTinyUrls', {
@@ -49,7 +49,7 @@ export class VeryTinyStack extends Stack {
       deletionProtection: true,
       pointInTimeRecovery: true,
       timeToLiveAttribute: 'ttl'
-    });
+    })
 
     records.addGlobalSecondaryIndex({
       indexName: SUBMITTER_INDEX,
@@ -58,14 +58,14 @@ export class VeryTinyStack extends Stack {
         type: AttributeType.STRING
       },
       projectionType: ProjectionType.ALL
-    });
+    })
 
-    const plan = BackupPlan.daily35DayRetention(this, 'BackupPlan');
+    const plan = BackupPlan.daily35DayRetention(this, 'BackupPlan')
     plan.addSelection('BackupPlanSelection', {
       resources: [
         BackupResource.fromDynamoDbTable(records)
       ]
-    });
+    })
 
     // Lambda
     const defaultErrorLambda = new Function(this, 'DefaultErrorHandler', {
@@ -81,7 +81,7 @@ export class VeryTinyStack extends Stack {
         }
       }
       `)
-    });
+    })
 
     const tinyLinkLambda = new NodejsFunction(this, 'VeryTinyLambda', {
       runtime: Runtime.NODEJS_22_X,
@@ -96,9 +96,9 @@ export class VeryTinyStack extends Stack {
         SUBMITTER_INDEX
       },
       logRetention: RetentionDays.THREE_DAYS
-    });
+    })
 
-    records.grantReadWriteData(tinyLinkLambda);
+    records.grantReadWriteData(tinyLinkLambda)
 
     // API
     const restApi = new LambdaRestApi(this, 'VeryTinyApi', {
@@ -109,7 +109,7 @@ export class VeryTinyStack extends Stack {
         domainName: 'verytiny.link',
         securityPolicy: SecurityPolicy.TLS_1_2
       }
-    });
+    })
 
     const tinyLambdaIntegration = new LambdaIntegration(tinyLinkLambda)
 
@@ -117,23 +117,23 @@ export class VeryTinyStack extends Stack {
       allowOrigins: ['*'],
       allowHeaders: ['*'],
       allowCredentials: true
-    });
+    })
 
-    restApi.root.addMethod('GET', tinyLambdaIntegration);
-    restApi.root.addMethod('POST', tinyLambdaIntegration);
+    restApi.root.addMethod('GET', tinyLambdaIntegration)
+    restApi.root.addMethod('POST', tinyLambdaIntegration)
 
-    const urls = restApi.root.addResource('{key}');
+    const urls = restApi.root.addResource('{key}')
     urls.addCorsPreflight({
       allowOrigins: ['*'],
       allowHeaders: ['*'],
       allowCredentials: true
-    });
-    urls.addMethod('GET', tinyLambdaIntegration);
+    })
+    urls.addMethod('GET', tinyLambdaIntegration)
 
     new ARecord(this, 'VeryTinyRootRecord', {
       zone: hostedZone,
       target: RecordTarget.fromAlias(new ApiGateway(restApi))
-    });
+    })
 
     // UI Bucket
     const uiBucket = new Bucket(this, 'VeryTinyBucket', {
@@ -151,7 +151,7 @@ export class VeryTinyStack extends Stack {
         expiredObjectDeleteMarker: true,
         noncurrentVersionExpiration: Duration.days(3)
       }]
-    });
+    })
 
     // CloudFront
     const distribution = new Distribution(this, 'VeryTinyCloudfront', {
@@ -194,7 +194,7 @@ export class VeryTinyStack extends Stack {
       exclude: ['build.js'],
       destinationBucket: uiBucket,
       distribution: distribution
-    });
+    })
 
     new ARecord(this, 'UIRecord', {
       zone: hostedZone,
@@ -202,6 +202,6 @@ export class VeryTinyStack extends Stack {
       target: {
         aliasTarget: new CloudFrontTarget(distribution)
       }
-    });
+    })
   }
 }

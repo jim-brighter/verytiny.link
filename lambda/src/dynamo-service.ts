@@ -1,7 +1,7 @@
-import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
-import { ConditionalCheckFailedException, DynamoDBClient } from '@aws-sdk/client-dynamodb';
-import { Link, LinkRecord } from './link';
-import { randomString } from './util';
+import { DynamoDBDocumentClient, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb'
+import { ConditionalCheckFailedException, DynamoDBClient } from '@aws-sdk/client-dynamodb'
+import { Link, LinkRecord } from './link'
+import { randomString } from './util'
 
 const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({
     region: process.env.AWS_REGION,
@@ -10,17 +10,17 @@ const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({
     marshallOptions: {
         convertClassInstanceToMap: true
     }
-});
+})
 
-const table = process.env.VERY_TINY_TABLE || '';
+const table = process.env.VERY_TINY_TABLE || ''
 
 export const createLink = async (url: string, submitter?: string): Promise<Link> => {
-    const link = new LinkRecord();
-    link.shortId = randomString();
-    link.submitter = submitter || 'anon';
-    link.url = url;
-    link.createdTime = Date.now();
-    link.ttl = Math.floor(link.createdTime / 1000 + (365 * 24 * 60 * 60));
+    const link = new LinkRecord()
+    link.shortId = randomString()
+    link.submitter = submitter || 'anon'
+    link.url = url
+    link.createdTime = Date.now()
+    link.ttl = Math.floor(link.createdTime / 1000 + (365 * 24 * 60 * 60))
 
     while(true) {
         try {
@@ -28,16 +28,16 @@ export const createLink = async (url: string, submitter?: string): Promise<Link>
                 TableName: table,
                 Item: link,
                 ConditionExpression: 'attribute_not_exists(shortId)'
-            }));
+            }))
 
-            return link;
+            return link
         } catch(e) {
             if (e instanceof ConditionalCheckFailedException) {
-                console.info(`Duplicate shortId generated for url ${url}`);
-                link.shortId = randomString();
+                console.info(`Duplicate shortId generated for url ${url}`)
+                link.shortId = randomString()
             } else {
-                console.error(`Error inserting url ${url}`, e);
-                throw e;
+                console.error(`Error inserting url ${url}`, e)
+                throw e
             }
         }
     }
@@ -51,13 +51,13 @@ export const getUrl = async (key: string): Promise<string> => {
                 ':shortId': key
             },
             KeyConditionExpression: 'shortId = :shortId'
-        }));
+        }))
 
-        const link = links.Items ? links.Items[0] as LinkRecord : new LinkRecord();
+        const link = links.Items ? links.Items[0] as LinkRecord : new LinkRecord()
 
-        return link.url;
+        return link.url
     } catch(e) {
-        console.error(`Error finding record with key ${key}`, e);
-        throw e;
+        console.error(`Error finding record with key ${key}`, e)
+        throw e
     }
 }
