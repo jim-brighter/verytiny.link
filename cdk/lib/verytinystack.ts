@@ -10,8 +10,9 @@ import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatem
 import { LambdaIntegration, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway';
 import { ApiGateway, CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { BlockPublicAccess, Bucket, BucketAccessControl, BucketEncryption } from 'aws-cdk-lib/aws-s3';
-import { CloudFrontAllowedCachedMethods, CloudFrontAllowedMethods, CloudFrontWebDistribution, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
+import { AllowedMethods, CachedMethods, CachePolicy, Distribution, SecurityPolicyProtocol, SSLMethod, ViewerProtocolPolicy } from 'aws-cdk-lib/aws-cloudfront';
 import { BucketDeployment, Source } from 'aws-cdk-lib/aws-s3-deployment';
+import { S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
 
 const SUBMITTER_INDEX = 'SubmitterIndex'
 
@@ -153,51 +154,39 @@ export class VeryTinyStack extends Stack {
     });
 
     // CloudFront
-    const distribution = new CloudFrontWebDistribution(this, 'VeryTinyCloudfront', {
-      originConfigs: [
-        {
-          s3OriginSource: {
-            s3BucketSource: uiBucket
-          },
-          behaviors: [
-            {
-              isDefaultBehavior: true,
-              pathPattern: '*',
-              compress: true,
-              allowedMethods: CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-              cachedMethods: CloudFrontAllowedCachedMethods.GET_HEAD_OPTIONS,
-              defaultTtl: Duration.days(90),
-              minTtl: Duration.days(30),
-              maxTtl: Duration.days(365)
-            }
-          ]
-        }
-      ],
-      viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+    const distribution = new Distribution(this, 'VeryTinyCloudfront', {
+      defaultBehavior: {
+        compress: true,
+        origin: new S3StaticWebsiteOrigin(uiBucket),
+        viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
+        cachedMethods: CachedMethods.CACHE_GET_HEAD_OPTIONS,
+        cachePolicy: new CachePolicy(this, 'CachePolicy', {
+          defaultTtl: Duration.days(90),
+          minTtl: Duration.days(30),
+          maxTtl: Duration.days(365)
+        })
+      },
+      certificate: cert,
+      sslSupportMethod: SSLMethod.SNI,
+      minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
+      domainNames: ['home.verytiny.link'],
       defaultRootObject: 'index.html',
-      errorConfigurations: [
+      errorResponses: [
         {
-          errorCode: 404,
+          httpStatus: 404,
           responsePagePath: '/',
-          responseCode: 200,
-          errorCachingMinTtl: Duration.days(30).toSeconds()
+          responseHttpStatus: 200,
+          ttl: Duration.days(30)
         },
         {
-          errorCode: 403,
+          httpStatus: 403,
           responsePagePath: '/',
-          responseCode: 200,
-          errorCachingMinTtl: Duration.days(30).toSeconds()
+          responseHttpStatus: 200,
+          ttl: Duration.days(30)
         }
-      ],
-      viewerCertificate: {
-        aliases: ['home.verytiny.link'],
-        props: {
-          minimumProtocolVersion: 'TLSv1.2_2021',
-          sslSupportMethod: 'sni-only',
-          acmCertificateArn: cert.certificateArn
-        }
-      }
-    });
+      ]
+    })
 
     // UI Deployment
     new BucketDeployment(this, 'VeryTinyBucketDeployment', {
