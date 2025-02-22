@@ -5,7 +5,7 @@ import { BackupPlan, BackupResource } from 'aws-cdk-lib/aws-backup'
 import { Code, Function, Runtime } from 'aws-cdk-lib/aws-lambda'
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs'
 import { RetentionDays } from 'aws-cdk-lib/aws-logs'
-import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
+import { ARecord, HostedZone, IHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
 import { Certificate, CertificateValidation } from 'aws-cdk-lib/aws-certificatemanager'
 import { LambdaIntegration, LambdaRestApi, SecurityPolicy } from 'aws-cdk-lib/aws-apigateway'
 import { ApiGateway, CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets'
@@ -17,11 +17,15 @@ import { S3StaticWebsiteOrigin } from 'aws-cdk-lib/aws-cloudfront-origins'
 const SUBMITTER_INDEX = 'SubmitterIndex'
 
 export class VeryTinyStack extends Stack {
+
+  readonly hostedZone: IHostedZone
+  readonly records: Table
+
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props)
 
     // Hosted Zone
-    const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
+    this.hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
       domainName: 'verytiny.link'
     })
 
@@ -29,11 +33,11 @@ export class VeryTinyStack extends Stack {
     const cert = new Certificate(this, 'VeryTinyCertificate', {
       domainName: 'verytiny.link',
       subjectAlternativeNames: ['*.verytiny.link'],
-      validation: CertificateValidation.fromDns(hostedZone)
+      validation: CertificateValidation.fromDns(this.hostedZone)
     })
 
     // Dynamo
-    const records = new Table(this, 'VeryTinyUrls', {
+    this.records = new Table(this, 'VeryTinyUrls', {
       partitionKey: {
         name: 'shortId',
         type: AttributeType.STRING
@@ -47,11 +51,15 @@ export class VeryTinyStack extends Stack {
       removalPolicy: RemovalPolicy.RETAIN,
       billingMode: BillingMode.PAY_PER_REQUEST,
       deletionProtection: true,
-      pointInTimeRecovery: true,
-      timeToLiveAttribute: 'ttl'
+      pointInTimeRecoverySpecification: {
+        pointInTimeRecoveryEnabled: true,
+        recoveryPeriodInDays: 14
+      },
+      timeToLiveAttribute: 'ttl',
+      replicationRegions: ['us-west-2']
     })
 
-    records.addGlobalSecondaryIndex({
+    this.records.addGlobalSecondaryIndex({
       indexName: SUBMITTER_INDEX,
       partitionKey: {
         name: 'submitter',
@@ -63,7 +71,7 @@ export class VeryTinyStack extends Stack {
     const plan = BackupPlan.daily35DayRetention(this, 'BackupPlan')
     plan.addSelection('BackupPlanSelection', {
       resources: [
-        BackupResource.fromDynamoDbTable(records)
+        BackupResource.fromDynamoDbTable(this.records)
       ]
     })
 
@@ -91,14 +99,14 @@ export class VeryTinyStack extends Stack {
         minify: true
       },
       environment: {
-        VERY_TINY_TABLE: records.tableName,
+        VERY_TINY_TABLE: this.records.tableName,
         STRING_LENGTH: '4',
         SUBMITTER_INDEX
       },
       logRetention: RetentionDays.THREE_DAYS
     })
 
-    records.grantReadWriteData(tinyLinkLambda)
+    this.records.grantReadWriteData(tinyLinkLambda)
 
     // API
     const restApi = new LambdaRestApi(this, 'VeryTinyApi', {
@@ -131,8 +139,9 @@ export class VeryTinyStack extends Stack {
     urls.addMethod('GET', tinyLambdaIntegration)
 
     new ARecord(this, 'VeryTinyRootRecord', {
-      zone: hostedZone,
-      target: RecordTarget.fromAlias(new ApiGateway(restApi))
+      zone: this.hostedZone,
+      target: RecordTarget.fromAlias(new ApiGateway(restApi)),
+      region: 'us-east-1'
     })
 
     // UI Bucket
@@ -197,7 +206,7 @@ export class VeryTinyStack extends Stack {
     })
 
     new ARecord(this, 'UIRecord', {
-      zone: hostedZone,
+      zone: this.hostedZone,
       recordName: 'home',
       target: {
         aliasTarget: new CloudFrontTarget(distribution)
