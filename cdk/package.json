@@ -10,8 +10,10 @@
     "test": "jest",
     "cdk": "cdk",
     "cdk:lambda:install": "cd ../lambda && npm i && cd ../cdk",
-    "deploy": "npm run cdk:lambda:install && cdk deploy --all --require-approval never --outputs-file output.json",
-    "synth": "cdk synth"
+    "cdk:ui:build": "cd ../ui && node build.js && cd ../cdk",
+    "cdk:deploy": "cdk deploy --all --require-approval never --outputs-file output.json",
+    "deploy": "npm run cdk:ui:build && npm run cdk:lambda:install && npm run cdk:deploy",
+    "synth": "npm run cdk:ui:build && npm run cdk:lambda:install && cdk synth"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.147",

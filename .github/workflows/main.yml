@@ -37,8 +37,6 @@ jobs:
           num_releases_to_keep: 10
       - name: Deploy
         run: |
-          cd ui
-          node build.js
-          cd ../cdk
+          cd cdk
           npm i
           npm run deploy
