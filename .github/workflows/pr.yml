@@ -22,8 +22,6 @@ jobs:
           CDK_DEFAULT_ACCOUNT: 108929950724
           CDK_DEFAULT_REGION: us-east-1
         run: |
-          cd ui
-          node build.js
-          cd ../cdk
+          cd cdk
           npm i
           npm run synth -- -q
