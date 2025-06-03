@@ -48,7 +48,7 @@ export class VeryTinyStack extends Stack {
       },
       encryption: TableEncryption.AWS_MANAGED,
       tableName: 'VeryTinyUrls',
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       billingMode: BillingMode.PAY_PER_REQUEST,
       deletionProtection: true,
       pointInTimeRecoverySpecification: {
@@ -146,7 +146,7 @@ export class VeryTinyStack extends Stack {
     const uiBucket = new Bucket(this, 'VeryTinyBucket', {
       bucketName: 'home.verytiny.link',
       encryption: BucketEncryption.S3_MANAGED,
-      removalPolicy: RemovalPolicy.RETAIN,
+      removalPolicy: RemovalPolicy.DESTROY,
       versioned: true,
       publicReadAccess: true,
       blockPublicAccess: BlockPublicAccess.BLOCK_ACLS,
