@@ -1,4 +1,2 @@
 # verytiny.link
-https://verytiny.link
-
-I don't know why I made this
+This project is shut down and no longer maintained.
